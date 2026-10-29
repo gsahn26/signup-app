@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { addMember, isEmailTaken } from "@/lib/members";
-import { login } from "@/lib/auth";
+import { isEmailTaken } from "@/lib/members";
+import { signUp } from "@/lib/auth";
 import FormField from "@/components/FormField";
 
 const inputClassName =
@@ -26,33 +26,46 @@ export default function SignupPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function validate() {
+  async function validate() {
     if (!form.name.trim()) return "이름을 입력해주세요.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       return "올바른 이메일 형식이 아닙니다.";
     if (form.password.length < 6) return "비밀번호는 6자 이상이어야 합니다.";
     if (form.password !== form.passwordConfirm)
       return "비밀번호가 일치하지 않습니다.";
-    if (isEmailTaken(form.email)) return "이미 가입된 이메일입니다.";
+    if (await isEmailTaken(form.email)) return "이미 가입된 이메일입니다.";
     return "";
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const validationError = validate();
+    setSubmitting(true);
+    const validationError = await validate();
     if (validationError) {
       setError(validationError);
+      setSubmitting(false);
       return;
     }
     setError("");
-    setSubmitting(true);
-    const member = addMember({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      password: form.password,
-    });
-    login(member.email);
-    router.push(`/signup/complete?name=${encodeURIComponent(member.name)}`);
+    try {
+      const name = form.name.trim();
+      const data = await signUp({
+        name,
+        email: form.email.trim(),
+        password: form.password,
+      });
+      if (!data.session) {
+        setError(
+          "가입 확인 메일을 보냈어요. 메일함에서 인증 링크를 눌러 가입을 완료해주세요."
+        );
+        setSubmitting(false);
+        return;
+      }
+      router.push(`/signup/complete?name=${encodeURIComponent(name)}`);
+    } catch (err) {
+      setError(err.message || "회원가입 중 오류가 발생했습니다.");
+      setSubmitting(false);
+    }
   }
 
   return (

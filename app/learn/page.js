@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUserEmail } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { getMemberByEmail } from "@/lib/members";
 
 const COURSES = [
@@ -18,13 +18,16 @@ export default function LearnPage() {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const email = getCurrentUserEmail();
-    if (!email) {
-      router.replace("/login");
-      return;
+    async function load() {
+      const user = await getCurrentUser();
+      if (!user?.email) {
+        router.replace("/login");
+        return;
+      }
+      setMember(await getMemberByEmail(user.email));
+      setChecked(true);
     }
-    setMember(getMemberByEmail(email));
-    setChecked(true);
+    load();
   }, [router]);
 
   if (!checked) {

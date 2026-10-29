@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getCurrentUserEmail, subscribeAuthChange } from "@/lib/auth";
+import { getCurrentUser, subscribeAuthChange } from "@/lib/auth";
 import { getMemberByEmail } from "@/lib/members";
 
 export default function Home() {
@@ -10,9 +10,9 @@ export default function Home() {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    function refresh() {
-      const email = getCurrentUserEmail();
-      setMember(email ? getMemberByEmail(email) : null);
+    async function refresh() {
+      const user = await getCurrentUser();
+      setMember(user?.email ? await getMemberByEmail(user.email) : null);
       setChecked(true);
     }
     refresh();

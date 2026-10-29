@@ -9,8 +9,9 @@ export default function MembersPage() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setMembers(getMembers());
-    setLoaded(true);
+    getMembers()
+      .then(setMembers)
+      .finally(() => setLoaded(true));
   }, []);
 
   function formatDate(iso) {
@@ -76,7 +77,7 @@ export default function MembersPage() {
                       {member.email}
                     </td>
                     <td className="px-5 py-3 text-zinc-500 dark:text-zinc-400">
-                      {formatDate(member.joinedAt)}
+                      {formatDate(member.joined_at)}
                     </td>
                   </tr>
                 ))}

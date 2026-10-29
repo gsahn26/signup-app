@@ -3,19 +3,23 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUserEmail, logout, subscribeAuthChange } from "@/lib/auth";
+import { getCurrentUser, logout, subscribeAuthChange } from "@/lib/auth";
 
 export default function NavBar() {
   const router = useRouter();
   const [email, setEmail] = useState(null);
 
   useEffect(() => {
-    setEmail(getCurrentUserEmail());
-    return subscribeAuthChange(() => setEmail(getCurrentUserEmail()));
+    async function refresh() {
+      const user = await getCurrentUser();
+      setEmail(user?.email ?? null);
+    }
+    refresh();
+    return subscribeAuthChange(refresh);
   }, []);
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     setEmail(null);
     router.push("/");
   }

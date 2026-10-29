@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { verifyLogin } from "@/lib/members";
 import { login } from "@/lib/auth";
 import FormField from "@/components/FormField";
 
@@ -21,18 +20,17 @@ export default function LoginPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
-    const member = verifyLogin(form.email.trim(), form.password);
-    if (!member) {
+    try {
+      await login(form.email.trim(), form.password);
+      setError("");
+      router.push("/learn");
+    } catch (err) {
       setError("이메일 또는 비밀번호가 올바르지 않습니다.");
       setSubmitting(false);
-      return;
     }
-    setError("");
-    login(member.email);
-    router.push("/learn");
   }
 
   return (
